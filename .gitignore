@@ -16,5 +16,8 @@ libby_webcam_entropy.bin
 # Full-size renders stay local; the README uses the compressed .jpg
 docs/*.png
 
+# Local drafts that must never be published
+docs/NAMES-TEST.md
+
 # Local env
 .env

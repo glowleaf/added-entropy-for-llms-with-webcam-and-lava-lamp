@@ -159,6 +159,11 @@ Recorded so nobody repeats them.
 | SGLang draws its process seed from **Python's `random`** | `server_args.py`: `if self.random_seed is None: self.random_seed = random.randint(0, 1 << 30)`, then applied by the engine via `set_random_seed()` in the scheduler and tp_worker. Seeding Python's `random` early therefore reaches the engine's own official seed path. |
 | ffmpeg's `-q:v 5` is **not** libjpeg quality 5 | `-q:v` runs 1 (best) to 31 (worst); libjpeg quality runs the other way. Mixing them up overstates codec damage by ~2.5×. |
 | Do not take entropy from a codec's output | Measure the residual, not a frame. See the table above. |
+| A failed `std::ifstream::open()` poisons the stream | failbit stays set, so the next `open()` on the same object is a silent no-op and every fallback path is dead. `clear()` between attempts. |
+| An XOR accumulator can cancel | Eight identical 32-bit words XOR to zero, making the mix a no-op on degenerate input. Use an order-sensitive FNV-1a step instead. |
+| `llama-server` may be a thin launcher | The compiled code lives in `libllama.so`; a `strings` check on the executable proves nothing about whether a patch landed. Check the artifact that holds the code. |
+| A system prompt can be the amplifier, not the control vector | Same model, same vector, same scale: with a system prompt in an emotional register the output collapsed; without it, two clean runs. See [`docs/names-experiment.md`](docs/names-experiment.md). |
+| Never trust a scorer you have not checked against the raw text | A "two capitalised words is a name" heuristic scored a fantasy-slop loop as 39/40 usable. |
 
 ---
 
