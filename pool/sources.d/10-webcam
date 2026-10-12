@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+"""
+10-webcam - entropy source: the box's Logitech camera.
+
+Contract (see ~/olv/entropy_sources.d/README.md): print bytes to stdout.
+Each cycle: pull distinct frames off the ALREADY RUNNING MJPEG stream at
+127.0.0.1:8080 (read-only - the face gate and the live stream keep working),
+take the temporal residual between consecutive frames so the static scene
+cancels and only the noise remains, and print it.
+
+Measured honestly: this camera's frames are JPEG, so min-entropy is ~2.93
+bits/byte against 7.76 for true noise, with visible 8x8 block structure. It is
+a weak source. It is mixed with every other source and with os.urandom by
+libby_entropy.py, so a weak camera cannot weaken the pool - but it also cannot
+carry it. Do not count on it.
+"""
+import os
+import sys
+import time
+import urllib.request
+
+STREAM = os.environ.get("LIBBY_WEBCAM_STREAM", "http://127.0.0.1:8080/stream")
+WANT = 5
+TIMEOUT = 12.0
+
+
+def main():
+    try:
+        import numpy as np
+        import cv2
+    except Exception as e:                                            # noqa: BLE001
+        print("no numpy/cv2: %s" % e, file=sys.stderr)
+        return 1
+
+    frames, buf, t0 = [], b"", time.time()
+    try:
+        req = urllib.request.urlopen(STREAM, timeout=8)
+    except Exception as e:                                            # noqa: BLE001
+        print("stream unreachable: %s" % str(e)[:60], file=sys.stderr)
+        return 1
+    try:
+        while len(frames) < WANT and time.time() - t0 < TIMEOUT:
+            chunk = req.read(8192)
+            if not chunk:
+                break
+            buf += chunk
+            while True:
+                s = buf.find(b"\xff\xd8")
+                e = buf.find(b"\xff\xd9", s + 2) if s >= 0 else -1
+                if s < 0 or e < 0:
+                    break
+                img = cv2.imdecode(np.frombuffer(buf[s:e + 2], np.uint8),
+                                   cv2.IMREAD_GRAYSCALE)
+                buf = buf[e + 2:]
+                if img is not None and (not frames or not np.array_equal(img, frames[-1])):
+                    frames.append(img)
+    except Exception as e:                                            # noqa: BLE001
+        print("read error: %s" % str(e)[:60], file=sys.stderr)
+    finally:
+        try:
+            req.close()
+        except Exception:                                             # noqa: BLE001
+            pass
+
+    if len(frames) < 2:
+        print("only %d distinct frames" % len(frames), file=sys.stderr)
+        return 1
+
+    resid = b"".join(
+        np.abs(frames[i].astype(np.int16) - frames[i + 1].astype(np.int16))
+        .astype(np.uint8).tobytes()
+        for i in range(len(frames) - 1)
+    )
+    print("%d distinct frames, %d residual bytes" % (len(frames), len(resid)),
+          file=sys.stderr)
+    sys.stdout.buffer.write(resid)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

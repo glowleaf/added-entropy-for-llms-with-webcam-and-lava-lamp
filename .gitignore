@@ -1,0 +1,17 @@
+# Windows folder metadata
+desktop.ini
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Generated artefacts — the pool itself is never committed
+*.bin
+*.pool
+*.tmp
+dgx_entropy_pool.bin
+libby_webcam_entropy.bin
+
+# Local env
+.env
