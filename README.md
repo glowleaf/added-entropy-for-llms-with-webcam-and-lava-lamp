@@ -215,6 +215,11 @@ feeds every machine.**
 
 ## Adding a lava lamp
 
+![A webcam on a bracket pointed at a lava lamp, across a dim room](docs/webcam-aimed-at-lava-lamp.jpg)
+
+*The setup this is built for: the camera watches the lamp, the lamp's wax moves unpredictably,
+and the difference between consecutive frames is where the entropy comes from.*
+
 A lava lamp is a good source: the wax moves unpredictably, so consecutive frames differ in
 ways nobody can forecast. Drop an executable into the sources directory; it prints bytes.
 

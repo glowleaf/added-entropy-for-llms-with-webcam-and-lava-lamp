@@ -13,5 +13,8 @@ __pycache__/
 dgx_entropy_pool.bin
 libby_webcam_entropy.bin
 
+# Full-size renders stay local; the README uses the compressed .jpg
+docs/*.png
+
 # Local env
 .env
