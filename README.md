@@ -88,6 +88,65 @@ inspect its structure. Everything above is a bound and a structure check.
 
 ---
 
+## Why Cloudflare points a camera at lava lamps
+
+The same three principles are why this repo exists, so it is worth stating where they
+come from. Cloudflare has a wall of lava lamps in the lobby of their San Francisco office,
+photographed by a camera and fed into the randomness behind the TLS connections their
+network serves — upwards of 55 million HTTP requests per second
+([Randomness 101: LavaRand in Production](https://blog.cloudflare.com/randomness-101-lavarand-in-production/),
+2017; [Harnessing chaos in Cloudflare offices](https://blog.cloudflare.com/harnessing-office-chaos/), 2024).
+
+**1. The seed is the fragile part, not the generator.** Cryptography runs on a CSPRNG that
+turns a random *seed* into an endless stream of unpredictable bytes. The generator itself
+is fine; nobody breaks it. But, in Cloudflare's own words, *"this all depends on having a
+secure random seed to begin with."* So the entire security of every connection reduces to
+getting one thing right: real randomness at the start. That is why physical entropy is worth
+attention — it is the single point where the guarantees either hold or silently do not.
+
+**2. Local sources are plausible, not verifiable.** For years their servers seeded their
+entropy pools from local noise — "the precise timing of packet arrivals or keyboard events."
+That works, but it is unverifiable, and in a virtualised environment it can be far weaker
+than it sounds or even partly influenceable by an adversary sharing the same host. A
+physical source is out of reach in a way that a shared cache's timing is not.
+
+**3. The decisive reason: you can look at it.** A wall of lava lamps is a chaotic physical
+system that any person walking through the lobby can see is doing something unpredictable.
+You cannot do that with a CPU's `RDRAND` — its internals are unpublished, so you must trust
+the vendor. Entropy is the one input where a hidden defect destroys everything downstream
+without a visible symptom, and there is a recent, expensive proof: a firmware flaw from 2021
+meant one hardware wallet generated recovery seeds *without using its hardware random number
+generator*, and roughly $88 million was drained from the resulting addresses before anyone
+noticed, five years later. Against that class of failure, a source whose operation is visible
+to the naked eye is worth having.
+
+**And it is mixed, never sole.** LavaRand is one input among several, and by 2024 Cloudflare
+had deliberately diversified it — *"what was initially just a single species of physical
+entropy source – lava lamps – has grown and diversified."* That is the same doctrine used
+here: many sources combined so that no single failure, and no single malicious source, can
+poison the pool.
+
+The honest addendum is that a wall of lava lamps is also superb communication — it makes an
+invisible problem visible, and it has taught more people about entropy than any RFC. But the
+cryptographic role is real, not decorative. Same three principles, different stakes: theirs
+is the TLS for a third of the web, ours is where a local model's sampling randomness comes
+from.
+
+```
+                seed = the fragile part
+                        │
+        ┌───────────────┼───────────────┐
+   physical source   local noise    hardware RNG
+   (you can see it)  (unverifiable) (vendor's word)
+        └───────────────┼───────────────┘
+                        ▼
+                  hashed together        ← no single source can poison it
+                        ▼
+                     CSPRNG
+```
+
+---
+
 ## Findings that cost time
 
 Recorded so nobody repeats them.
