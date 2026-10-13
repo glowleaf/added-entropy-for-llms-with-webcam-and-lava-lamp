@@ -10,7 +10,8 @@ on the LAN.
 
 It does **not** make the text better. What it changes is *where the randomness comes
 from*. If you want better text, change the model. If you want the sampling randomness to
-originate in physics you can point at, this is that.
+originate in physics you can point at, this is that. (And no, it does not fix AI-slop names —
+[see below](#does-this-fix-the-ai-isms).)
 
 ---
 
@@ -225,6 +226,36 @@ Caveats, stated as caveats: two clean runs against four failed ones; one model, 
 scale, one task shape; whether the failing condition recovers at a lower scale was not tested.
 Full writeup, including three of my own measurement bugs and a scoring trap that had a naive
 heuristic agreeing with a wrong answer, in [`docs/names-experiment.md`](docs/names-experiment.md).
+
+---
+
+## Does this fix the AI-isms?
+
+**No.** Entropy decides *which* token you draw; it cannot change the curve you draw from. AI-ism
+names are the modal names in a model's learned distribution — they are high-probability
+continuations of "a name", so adding randomness samples them at their natural rate. It does not
+add taste.
+
+The evidence is direct, because the same pool was live in every run below:
+
+| prompt register | names produced |
+|---|---|
+| plain, no system prompt | Linda, Sharon, Kathy, Pamela, Lorraine, Lynne, Frances, Ruth, Sylvia, Priscilla — **zero** AI-isms |
+| same model, system prompt in an emotional register + control vector | Aurora Blackwood, Elara Frost, Kaida Kharesh, Zephyr, Riven, Maelara — the slop register |
+
+Nothing about the entropy changed between those two. The conditioning did.
+
+What actually moves them, measurably:
+
+| lever | effect |
+|---|---|
+| **System prompt register** | Large. The single biggest lever found here — same weights, same vector, same entropy, different output entirely. |
+| **A steering vector** | Real, and it moves the model onto the *cluster* those names live in. A dark/fantasy direction brings dark/fantasy names with it. |
+| **The base model** | Decisive, and the one thing entropy cannot touch. An older, less instruction-tuned model reaches for a mid-century name book; newer instruction-tuned models converge on the same fantasy-slop set, which is why the same names turn up across unrelated projects. |
+| **Sampling temperature** | Not a fix, and mildly the opposite — it samples more of the tail, and the slop names are near the head. |
+
+So: if AI-isms are the problem, the lever is the model or the conditioning, never the dice. The
+dice are for variety, and this repo only changes where the dice come from.
 
 ---
 
