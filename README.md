@@ -10,7 +10,7 @@ on the LAN.
 
 It does **not** make the text better. What it changes is *where the randomness comes
 from*. If you want better text, change the model. If you want the sampling randomness to
-originate in physics you can point at, this is that. (And no, it does not fix AI-slop names —
+originate in physics you can point at, this is that. (And on AI-slop names — **partially**;
 [see below](#does-this-fix-the-ai-isms).)
 
 ---
@@ -231,10 +231,19 @@ heuristic agreeing with a wrong answer, in [`docs/names-experiment.md`](docs/nam
 
 ## Does this fix the AI-isms?
 
-**No.** Entropy decides *which* token you draw; it cannot change the curve you draw from. AI-ism
-names are the modal names in a model's learned distribution — they are high-probability
-continuations of "a name", so adding randomness samples them at their natural rate. It does not
-add taste.
+**Partially — and it is worth separating which part.**
+
+*What it does not touch:* the distribution. AI-ism names are the **modal** names in a model's
+learned distribution — high-probability continuations of "a name" — so they stay
+high-probability however good the randomness is. The *source* of the randomness does not enter
+naming at all.
+
+*What it does touch:* the draw. Randomness decides *which* sample you take, and a wider draw
+reaches further into the tail, which is where the ordinary names live. So more sampling spread
+lowers the per-draw slop rate and stops the same five names repeating — at the price of
+coherence, since a wide draw also takes more of the slop mass in absolute terms, and push it far
+enough and the model leaves the format entirely. That is a genuine partial effect, and it is the
+sampling *spread* doing it, not the entropy source.
 
 The evidence is direct, because the same pool was live in every run below:
 
@@ -283,10 +292,12 @@ What actually moves them, measurably:
 | **System prompt register** | Real, but not sufficient alone — the first-names run succeeded *with* the prompt sent. It interacts with the vector and the task shape; those three were not isolated here. |
 | **A steering vector** | Real, and it moves the model onto the *cluster* those names live in. A dark/fantasy direction brings dark/fantasy names with it. |
 | **The base model** | Decisive, and the one thing entropy cannot touch. An older, less instruction-tuned model reaches for a mid-century name book; newer instruction-tuned models converge on the same fantasy-slop set, which is why the same names turn up across unrelated projects. |
-| **Sampling temperature** | Not a fix, and mildly the opposite — it samples more of the tail, and the slop names are near the head. |
+| **Sampling spread (temperature)** | **Partial.** The only lever entropy actually feeds. A wider draw samples more of the tail where ordinary names live, so the per-draw slop rate falls and repeats stop. Costs coherence — and in absolute terms a wider draw takes *more* slop mass too, so the two move together. |
+| **The entropy source itself** | **None.** Camera, lava lamp, `os.urandom` — naming cannot tell them apart. This repo changes where the dice come from, not how many sides they have. |
 
-So: if AI-isms are the problem, the lever is the model or the conditioning, never the dice. The
-dice are for variety, and this repo only changes where the dice come from.
+So: the strong levers are the model and the conditioning. Sampling spread contributes a real
+partial effect. And the thing this repo actually changes — where the randomness comes from —
+contributes nothing to naming at all. Hence *partially*, on one count, and *no* on the other.
 
 ---
 
