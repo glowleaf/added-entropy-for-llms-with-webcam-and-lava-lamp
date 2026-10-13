@@ -238,18 +238,49 @@ add taste.
 
 The evidence is direct, because the same pool was live in every run below:
 
-| prompt register | names produced |
+| what changed | names produced |
 |---|---|
-| plain, no system prompt | Linda, Sharon, Kathy, Pamela, Lorraine, Lynne, Frances, Ruth, Sylvia, Priscilla — **zero** AI-isms |
-| same model, system prompt in an emotional register + control vector | Aurora Blackwood, Elara Frost, Kaida Kharesh, Zephyr, Riven, Maelara — the slop register |
+| 40 **first** names, system prompt sent | 40 ordinary names, **zero** AI-isms — full list below |
+| 40 **full** names, same system prompt | Aurora Blackwood, Elara Frost, Kaida Kharesh, Zephyr, Riven, Maelara — the slop register, and on repeat runs prose instead of names at all |
+| 40 **full** names, no system prompt sent | two clean runs, mostly ordinary, with register intrusions: Violet Slaughter, Riven Blackwood, Riven Hallow, Zephyr Goh |
 
-Nothing about the entropy changed between those two. The conditioning did.
+The zero-AI-ism run in full — same model, same entropy pool, same control vector:
+
+```
+ 1 Alessia      11 Sarah        21 Molly        31 Ophelia
+ 2 Lena         12 Sharon       22 Mona         32 Pamela
+ 3 Gillian      13 Sabrina      23 Monica       33 Penelope
+ 4 Ruth         14 Linda        24 Noah         34 Penny
+ 5 Cecilia      15 Lorraine     25 Nadia        35 Piper
+ 6 Kathy        16 Lynne        26 Nancy        36 Priscilla
+ 7 Katherine    17 Marian       27 Natalia      37 Rachel
+ 8 Frances      18 Martha       28 Nicole       38 Regina
+ 9 Francesca    19 Melody       29 Noel         39 Sara
+10 Sylvia       20 Meredith     30 Nora         40 Sarina
+```
+
+Checked against a list of the usual AI-generated-name tells — Luna, Nova, Seraphina, Elara,
+Aria, Lyra, Selene, Thorne, Raven, Sage, Wren, Ember, Zephyr, Vesper, Aurora — and **not one
+appears**. Instead it is a mid-century name book: Linda, Sharon, Kathy, Pamela, Lorraine,
+Lynne, Frances, Ruth, Sylvia, Priscilla, Regina, Nancy. The reason is mechanical rather than
+mystical: an older, less instruction-tuned base model puts the modal probability on the names
+that were common in its training text. Nothing about the entropy influenced this — it was live
+in both runs.
+
+(The same run does contain `Noah` at position 24, one male name in an otherwise female list,
+and the surnames are clustered by initial letter. Both are real artefacts; neither is an
+AI-ism.)
+
+Entropy is constant across every row of that table, so it cannot be what accounts for the
+difference. But what does account for it is not one variable either: the first-names run
+succeeded *with* the system prompt, and the full-names runs needed it removed. Task shape, prompt
+register and the steering vector move together in these samples, and I did not isolate them.
 
 What actually moves them, measurably:
 
 | lever | effect |
 |---|---|
-| **System prompt register** | Large. The single biggest lever found here — same weights, same vector, same entropy, different output entirely. |
+| **System prompt register** | Real, but not sufficient alone — the first-names run succeeded *with* the prompt sent. It interacts with the vector and the task shape; those three were not isolated here. |
 | **A steering vector** | Real, and it moves the model onto the *cluster* those names live in. A dark/fantasy direction brings dark/fantasy names with it. |
 | **The base model** | Decisive, and the one thing entropy cannot touch. An older, less instruction-tuned model reaches for a mid-century name book; newer instruction-tuned models converge on the same fantasy-slop set, which is why the same names turn up across unrelated projects. |
 | **Sampling temperature** | Not a fix, and mildly the opposite — it samples more of the tail, and the slop names are near the head. |
